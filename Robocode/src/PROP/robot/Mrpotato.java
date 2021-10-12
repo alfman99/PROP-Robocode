@@ -16,9 +16,10 @@ public class Mrpotato extends AdvancedRobot {
     private double anteriorDirEnemigo;
     private double predX;
     private double predY;
-    
+    private int potencia_bala;
     public Mrpotato(){
         this.anteriorDirEnemigo = 0.0;
+        this.potencia_bala = 3;
     }
     
     
@@ -44,7 +45,16 @@ public class Mrpotato extends AdvancedRobot {
         esquivar(e);
         
         // placeholder 3 energy bullet
-        circularTarget(e, 3);
+        if(getEnergy()>40) {
+            potencia_bala = 3;
+        }
+        else if(getEnergy()>20 && getEnergy()<40) {
+            potencia_bala = 2;
+        }
+        else if (e.getDistance() < 100) {
+            potencia_bala = 1;
+        }
+        circularTarget(e, potencia_bala);
         apuntaYDisparar(e);
         
         // Refresh radar position
@@ -54,19 +64,20 @@ public class Mrpotato extends AdvancedRobot {
     
     @Override
     public void onHitWall(HitWallEvent e) {
-        
+        this.setBack(100);
     }
     
     
     @Override
     public void onHitByBullet(HitByBulletEvent e) {
-        
+        this.setBack(100);
+
     }
     
     
     @Override
     public void onBulletHit(BulletHitEvent e) {
-        
+        setFire(Rules.MAX_BULLET_POWER);
     }
   
     
