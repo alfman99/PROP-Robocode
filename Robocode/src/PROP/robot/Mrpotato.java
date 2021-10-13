@@ -12,14 +12,25 @@ public class Mrpotato extends AdvancedRobot {
     
     // Atributos de la clase
     private final static double DISTANCA_LIMITE = 200.0;
-        
+    
+    private int direccion;
+    private int ticksFromLastMovChange;
     private double anteriorDirEnemigo;
     private double predX;
     private double predY;
     private int potencia_bala;
+    
+    private int margenBorde;
+    
+    private double prevEnergia;
+    
     public Mrpotato(){
         this.anteriorDirEnemigo = 0.0;
         this.potencia_bala = 3;
+        this.direccion = 1;
+        this.ticksFromLastMovChange = 0;
+        this.prevEnergia = Double.MAX_VALUE;
+        this.margenBorde = 150;
     }
     
     
@@ -32,7 +43,11 @@ public class Mrpotato extends AdvancedRobot {
         // Giro para triggerear evento onScannedRobot y poder trackear perfecto
         setTurnRadarRight(Double.POSITIVE_INFINITY);
         
+        // Registramos el evento customizado para que se tenga en cuenta en la partida.
+        addCustomEvent(this.casiChocoEvent);
+        
         while(true) {
+            this.ticksFromLastMovChange++;
             scan();
             execute();
         }
@@ -41,8 +56,7 @@ public class Mrpotato extends AdvancedRobot {
     
     @Override
     public void onScannedRobot(ScannedRobotEvent e) {
-        analiza(e);
-        esquivar(e);
+        analizaYMueve(e);
         
         // placeholder 3 energy bullet
         if(getEnergy()>40) {
@@ -64,7 +78,8 @@ public class Mrpotato extends AdvancedRobot {
     
     @Override
     public void onHitWall(HitWallEvent e) {
-        this.setBack(100);
+        // System.out.println("me he pegao");
+        this.changeDirecction("MURO");
     }
     
     
@@ -79,6 +94,80 @@ public class Mrpotato extends AdvancedRobot {
     public void onBulletHit(BulletHitEvent e) {
         setFire(Rules.MAX_BULLET_POWER);
     }
+    
+    /**
+     * Cambiar la dirección del movimiento del robot
+     * y tener un "threshhold" sobre el que actuar segun
+     * los ticks que han pasado desde la ultima vez que 
+     * se cambió el movimiento para evitar estar todo el rato
+     * cambiando de movimiento y haciendolo inutil.
+     * 
+     * Se le da mas prioridad a unos eventos que a otros.
+     * 
+     * @param motivo 
+     */
+    private void changeDirecction (String motivo) {
+                
+        if (motivo.equals("MURO")) {
+            this.ticksFromLastMovChange = 0;
+            direccion *= -1;
+        }
+        else if (motivo.equals("CASI_CHOCO")) {
+            if (this.ticksFromLastMovChange > 10) {
+                direccion *= -1;
+                this.ticksFromLastMovChange = 0;
+            }
+        }
+        else if (motivo.equals("ENEMIGO_DISPARO")) {
+            if (this.ticksFromLastMovChange > 30) {
+                direccion *= -1;
+            }
+            this.ticksFromLastMovChange = 0;
+        }
+        else if (motivo.equals("PERIODICO")) {
+            if (this.ticksFromLastMovChange > 5) {
+                direccion *= -1;
+            }
+        }
+        
+    }
+    
+    /**
+     * Crear nuevo evento en el que devuelve true si nuestro robot sobrepasa
+     * el borde del ring para cambiar la dirección en el handler del evento
+     * antes de que choque asi evitando perder puntos por chocar contra el borde.
+     */
+    Condition casiChocoEvent = new Condition("CASI_CHOCO") {
+        @Override
+        public boolean test() {
+            return (
+                !(
+                    getX() > margenBorde &&
+                    getX() < (getBattleFieldWidth() - margenBorde) &&
+                    getY() > margenBorde &&
+                    getY() < (getBattleFieldHeight() - margenBorde)
+                )
+             );
+        }
+    };
+
+    
+    @Override
+    public void onCustomEvent(CustomEvent e) {
+        if (e.getCondition().getName().equals("CASI_CHOCO"))
+        {
+            this.changeDirecction("CASI_CHOCO");
+        }
+    }
+    
+    /**
+     * Normaliza el angulo para que esté comprendido entre 0 y 360º
+     * @param angle
+     * @return 
+     */
+    private double normalizeBearing(double angle) {
+        return angle % 360;
+    }
   
     
     /**
@@ -86,10 +175,10 @@ public class Mrpotato extends AdvancedRobot {
      * velocidad y el movimiento del radar y del cañón
      * @param e Permite obtener información del enemigo
      */
-    private void analiza(ScannedRobotEvent e) {
+    private void analizaYMueve(ScannedRobotEvent e) {
         
-        // mirando hacia el otro robot.
-        setTurnRight(2.0 * Utils.normalRelativeAngleDegrees(getHeading() + e.getBearing() - getHeading()));
+        // posicionar el robot en perpendicular a la recta que forman los dos tanques
+        setTurnRight(e.getBearing() + 90);
         
         double distanciaActual = e.getDistance();
                 
@@ -97,28 +186,31 @@ public class Mrpotato extends AdvancedRobot {
         double distanciaHastaLimit = distanciaActual - DISTANCA_LIMITE;
         
         if (distanciaHastaLimit > 0) {
-            this.setAhead(distanciaHastaLimit * 0.1);
+            setTurnRight(normalizeBearing(e.getBearing() + 90 - (15 * direccion)));
         }
         else {
             if (e.getEnergy() < this.getEnergy()) {
-                this.setAhead(200);
+                setTurnRadarRight(2.0 * Utils.normalRelativeAngleDegrees(getHeading() + e.getBearing() - getRadarHeading()));
             }
             else {
-                this.setAhead(distanciaHastaLimit * 0.1);
+                setTurnRight(normalizeBearing(e.getBearing() + 90 + (15 * direccion)));
             }
         }
         
-    }
-    
-    
-    /**
-     * Método que permite al robot esquivar un disparo.
-     * @param e 
-     */
-    private void esquivar(ScannedRobotEvent e) {
-        // esto no parece ser necesario y probablemente sea muy complejo.
-    }
-    
+        if (e.getEnergy() < this.prevEnergia) {
+            this.changeDirecction("ENEMIGO_DISPARO");
+        }
+        
+        this.prevEnergia = e.getEnergy();
+        
+        if (getTime() % 20 == 0) {
+            this.changeDirecction("PERIODICO");
+        }
+        
+        this.setAhead(200 * this.direccion);
+        
+    }   
+       
     /**
      * Método usado para identificar el punto hacía donde disparar, según la posición del enemigo, a través de una política de target circular
      * @param e 
