@@ -50,6 +50,9 @@ public class MrPotatoV2 extends AdvancedRobot {
         this.prevEnergia = Double.MAX_VALUE;
     }
     
+    /**
+     * Inicializa el robot para que sea operativo
+     */
     private void init () {
         setAdjustGunForRobotTurn(true);
         setAdjustRadarForGunTurn(true);
@@ -61,6 +64,9 @@ public class MrPotatoV2 extends AdvancedRobot {
         addCustomEvent(this.almostHitWall);
     }
     
+    /**
+     * Bucle principal del robot
+     */
     @Override
     public void run() {
         this.init();
@@ -71,14 +77,27 @@ public class MrPotatoV2 extends AdvancedRobot {
         }
     }
     
+    /**
+     * Incrementa diferentes tickers
+     */
     private void incTickers () {
         this.ticksFromLastMovChange++;
     }
     
+    /**
+     * Normaliza el angulo entre 0 y 360º
+     * @param angle Angulo no normalizado
+     * @return Angulo normalizado
+     */
     private double normalizeBearing(double angle) {
         return angle % 360;
     }
     
+    /**
+     * Handler para diferentes posibles cambios de dirección
+     * de nuestro robot.
+     * @param motivo Motivo por el que se quiere cambiar de dirección
+     */
     private void changeDirection (String motivo) {
         switch (motivo) {
             case "MURO": {
@@ -112,6 +131,11 @@ public class MrPotatoV2 extends AdvancedRobot {
         }
     }
     
+    
+    /**
+     * Lógica principal del movimiento de nuestro robot
+     * @param event Permite obtener información del enemigo utilizada para tomar decisiones
+     */
     private void analizaYMueve(ScannedRobotEvent event) {
         
         // Reiniciamos la posicion a perpendicular al enemigo
@@ -149,6 +173,11 @@ public class MrPotatoV2 extends AdvancedRobot {
         
     }
     
+    
+    /**
+     * Lógica para elegir la potencia de la bala
+     * @param event Permite obtener información del enemigo utilizada para tomar decisiones
+     */
     private void selectBulletPower(ScannedRobotEvent event) {
         if(getEnergy() > 40) {
             this.bulletPower = Rules.MAX_BULLET_POWER;
@@ -161,14 +190,34 @@ public class MrPotatoV2 extends AdvancedRobot {
         }
     }
     
+    
+    /**
+     * Calcula la distancia que hay entre nuestro robot y la posición que se
+     * ha predecido con this.predX y this.predY
+     * @return La distancia que hay entre nuestro robot y la posición que se
+     * ha predecido con this.predX y this.predY
+     */
     private double distanceFromOurPostoPred () {
         return Point2D.Double.distance(getX(), getY(), this.predX, this.predY);
     }
     
+    
+    /**
+     * Calcula a que distancia estará una bala de potencia this.bulletPower en
+     * un tiempo determinado time.
+     * @param time Tiempo usado para el calculo
+     * @return Devuelve la distancia calculada
+     */
     private double calcDistanceToBullet (double time) {
         return time * (20 - 3 * this.bulletPower);
     }
     
+    
+    /**
+     * Ajustar los atributos de posición en donde se quiere disparar con un 
+     * modelo de predicción basado en el circular targeting.
+     * @param event Permite obtener información del enemigo utilizada para tomar decisiones
+     */
     private void calculateCircularTarget (ScannedRobotEvent event) {
         double enemyHeading = event.getHeadingRadians();
         double headingDiffRad = enemyHeading - this.lastEnemyHeading;
@@ -189,6 +238,12 @@ public class MrPotatoV2 extends AdvancedRobot {
         }
     }
     
+    
+    /**
+     * En función de los atributos this.predX y this.predY calculamos el angulo
+     * en el que el cañon del tanque debe estar a la hora de disparar y disparamos.
+     * @param event Permite obtener información del enemigo utilizada para tomar decisiones
+     */
     private void aimAndShoot(ScannedRobotEvent event) {
                 
         // Angulo que forman el tanque y su target predecido en RADIANES
@@ -206,6 +261,12 @@ public class MrPotatoV2 extends AdvancedRobot {
         setFire(this.bulletPower);
     }
     
+    
+    /**
+     * Evento principal de donde se toman todas las decisiones basado en 
+     * la información que recibimos del enemigo escaneado.
+     * @param event Permite obtener información del enemigo utilizada para tomar decisiones
+     */
     @Override
     public void onScannedRobot (ScannedRobotEvent event) {
         this.analizaYMueve(event);
@@ -217,6 +278,11 @@ public class MrPotatoV2 extends AdvancedRobot {
         setTurnRadarRight(2.0 * Utils.normalRelativeAngleDegrees(getHeading() + event.getBearing() - getRadarHeading()));
     }
     
+    /**
+     * Creamos un evento personalizado para determinar si nuestro robot está
+     * en una zona peligrosa o no en función del la distancia a los muros que le 
+     * rodean.
+     */
     Condition almostHitWall = new Condition("CASI_CHOCO") {
         @Override
         public boolean test() {
@@ -229,6 +295,11 @@ public class MrPotatoV2 extends AdvancedRobot {
         }
     };
     
+    
+    /**
+     * Handler donde se procesarán los eventos personalizados creados por nosotros.
+     * @param event Permite obtener información del enemigo utilizada para tomar decisiones
+     */
     @Override
     public void onCustomEvent(CustomEvent event) {
         // Esto en verdad no haría falta ya que solo tenemos un custom event.
@@ -237,6 +308,11 @@ public class MrPotatoV2 extends AdvancedRobot {
         }
     }
     
+    
+    /**
+     * Handler que determina que hacer si nos chocamos contra un muro
+     * @param event Permite obtener información del enemigo utilizada para tomar decisiones
+     */
     @Override
     public void onHitWall(HitWallEvent event) {
         this.changeDirection("MURO");
