@@ -20,24 +20,34 @@ import robocode.util.Utils;
  */
 public class MrPotatoV2 extends AdvancedRobot {
     
+    /**
+     * Originalmente todos los atributos / metodos marcados como protected eran
+     * private, pero a la hora de generar el javadoc no se mostraban
+     * ya que no tiene sentido documentar metodos o atributos que no van a ser
+     * utilizados por otras clases.
+     */
+    
     // Movement constant
-    private final static double DISTANCE_TO_ROBOT = 200.0;
-    private final static int DISTANCE_TO_BORDER = 150;
+    protected final static double DISTANCE_TO_ROBOT = 200.0;
+    protected final static int DISTANCE_TO_BORDER = 150;
     
     // Movement attributes
-    private int ticksFromLastMovChange;
-    private int headingDirection;
+    protected int ticksFromLastMovChange;
+    protected int headingDirection;
     
     
     // Shooting attributes
-    private double lastEnemyHeading;
-    private double predX;
-    private double predY;
-    private double bulletPower;
+    protected double lastEnemyHeading;
+    protected double predX;
+    protected double predY;
+    protected double bulletPower;
     
     // Enemy tracking
-    private double prevEnergia;
+    protected double prevEnergia;
     
+    /**
+     *
+     */
     public MrPotatoV2(){
         this.ticksFromLastMovChange = 0;
         this.headingDirection = 1;
@@ -53,7 +63,7 @@ public class MrPotatoV2 extends AdvancedRobot {
     /**
      * Inicializa el robot para que sea operativo
      */
-    private void init () {
+    protected void init () {
         setAdjustGunForRobotTurn(true);
         setAdjustRadarForGunTurn(true);
         
@@ -80,7 +90,7 @@ public class MrPotatoV2 extends AdvancedRobot {
     /**
      * Incrementa diferentes tickers
      */
-    private void incTickers () {
+    protected void incTickers () {
         this.ticksFromLastMovChange++;
     }
     
@@ -89,7 +99,7 @@ public class MrPotatoV2 extends AdvancedRobot {
      * @param angle Angulo no normalizado
      * @return Angulo normalizado
      */
-    private double normalizeBearing(double angle) {
+    protected double normalizeBearing(double angle) {
         return angle % 360;
     }
     
@@ -98,7 +108,7 @@ public class MrPotatoV2 extends AdvancedRobot {
      * de nuestro robot.
      * @param motivo Motivo por el que se quiere cambiar de dirección
      */
-    private void changeDirection (String motivo) {
+    protected void changeDirection (String motivo) {
         switch (motivo) {
             case "MURO": {
                 this.headingDirection *= -1;
@@ -136,7 +146,7 @@ public class MrPotatoV2 extends AdvancedRobot {
      * Lógica principal del movimiento de nuestro robot
      * @param event Permite obtener información del enemigo utilizada para tomar decisiones
      */
-    private void analizaYMueve(ScannedRobotEvent event) {
+    protected void analizaYMueve(ScannedRobotEvent event) {
         
         // Reiniciamos la posicion a perpendicular al enemigo
         setTurnRight(event.getBearing() + 90);
@@ -178,7 +188,7 @@ public class MrPotatoV2 extends AdvancedRobot {
      * Lógica para elegir la potencia de la bala
      * @param event Permite obtener información del enemigo utilizada para tomar decisiones
      */
-    private void selectBulletPower(ScannedRobotEvent event) {
+    protected void selectBulletPower(ScannedRobotEvent event) {
         if(getEnergy() > 40) {
             this.bulletPower = Rules.MAX_BULLET_POWER;
         }
@@ -197,7 +207,7 @@ public class MrPotatoV2 extends AdvancedRobot {
      * @return La distancia que hay entre nuestro robot y la posición que se
      * ha predecido con this.predX y this.predY
      */
-    private double distanceFromOurPostoPred () {
+    protected double distanceFromOurPostoPred () {
         return Point2D.Double.distance(getX(), getY(), this.predX, this.predY);
     }
     
@@ -208,7 +218,7 @@ public class MrPotatoV2 extends AdvancedRobot {
      * @param time Tiempo usado para el calculo
      * @return Devuelve la distancia calculada
      */
-    private double calcDistanceToBullet (double time) {
+    protected double calcDistanceToBullet (double time) {
         return time * (20 - 3 * this.bulletPower);
     }
     
@@ -218,7 +228,7 @@ public class MrPotatoV2 extends AdvancedRobot {
      * modelo de predicción basado en el circular targeting.
      * @param event Permite obtener información del enemigo utilizada para tomar decisiones
      */
-    private void calculateCircularTarget (ScannedRobotEvent event) {
+    protected void calculateCircularTarget (ScannedRobotEvent event) {
         double enemyHeading = event.getHeadingRadians();
         double headingDiffRad = enemyHeading - this.lastEnemyHeading;
         
@@ -244,7 +254,7 @@ public class MrPotatoV2 extends AdvancedRobot {
      * en el que el cañon del tanque debe estar a la hora de disparar y disparamos.
      * @param event Permite obtener información del enemigo utilizada para tomar decisiones
      */
-    private void aimAndShoot(ScannedRobotEvent event) {
+    protected void aimAndShoot(ScannedRobotEvent event) {
                 
         // Angulo que forman el tanque y su target predecido en RADIANES
         double angleTankObjRadians = Math.atan2(predX - getX(), predY - getY());
