@@ -30,7 +30,7 @@ public class MrPotatoV2 extends AdvancedRobot {
     // Movement constant
     protected final static double DISTANCE_TO_ROBOT = 200.0;
     protected final static int DISTANCE_TO_BORDER = 150;
-    protected final static double DISTANCE_MAX_POWER = 250;
+    protected final static double DISTANCE_MAX_POWER = 500;
     
     // Movement attributes
     protected int ticksFromLastMovChange;
