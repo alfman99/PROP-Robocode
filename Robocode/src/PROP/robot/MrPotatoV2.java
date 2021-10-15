@@ -36,7 +36,6 @@ public class MrPotatoV2 extends AdvancedRobot {
     protected int ticksFromLastMovChange;
     protected int headingDirection;
     
-    
     // Shooting attributes
     protected double lastEnemyHeading;
     protected double predX;
