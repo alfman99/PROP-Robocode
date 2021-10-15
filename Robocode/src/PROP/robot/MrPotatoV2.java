@@ -30,6 +30,7 @@ public class MrPotatoV2 extends AdvancedRobot {
     // Movement constant
     protected final static double DISTANCE_TO_ROBOT = 200.0;
     protected final static int DISTANCE_TO_BORDER = 150;
+    protected final static double DISTANCE_MAX_POWER = 250;
     
     // Movement attributes
     protected int ticksFromLastMovChange;
@@ -116,7 +117,7 @@ public class MrPotatoV2 extends AdvancedRobot {
                 break;
             }
             case "CASI_CHOCO": {
-                if (this.ticksFromLastMovChange > 10) {
+                if (this.ticksFromLastMovChange > 5) {
                     this.headingDirection *= -1;
                     this.ticksFromLastMovChange = 0;
                 }
@@ -189,15 +190,16 @@ public class MrPotatoV2 extends AdvancedRobot {
      * @param event Permite obtener información del enemigo utilizada para tomar decisiones
      */
     protected void selectBulletPower(ScannedRobotEvent event) {
-        if(getEnergy() > 40) {
-            this.bulletPower = Rules.MAX_BULLET_POWER;
-        }
-        else if(getEnergy() > 20 && getEnergy() < 40) {
-            this.bulletPower = Rules.MAX_BULLET_POWER / 2.0f;
-        }
-        else if (event.getDistance() < 100) {
+        if (event.getDistance() > DISTANCE_MAX_POWER) {
             this.bulletPower = Rules.MIN_BULLET_POWER;
         }
+        else if (getEnergy() >= 0 && getEnergy() <= 20) {
+            this.bulletPower = Rules.MAX_BULLET_POWER / 1.5f;
+        }
+        else {
+            this.bulletPower = Rules.MAX_BULLET_POWER;
+        }
+        
     }
     
     
