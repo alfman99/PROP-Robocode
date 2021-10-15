@@ -61,7 +61,9 @@ public class MrPotatoV2 extends AdvancedRobot {
     }
     
     /**
-     * Inicializa el robot para que sea operativo
+     * Función usada para inicializar el robot. Orientamos el radar y el cañón.
+     * Rotamos el radar para comenzar a seguir al enemigo. 
+     * Registramos un evento customizado para su uso.
      */
     protected void init () {
         setAdjustGunForRobotTurn(true);
@@ -75,7 +77,7 @@ public class MrPotatoV2 extends AdvancedRobot {
     }
     
     /**
-     * Bucle principal del robot
+     * Punto de entrada donde se inicializa el robot y se ejecuta el bucle principal de la lógica del robot.
      */
     @Override
     public void run() {
@@ -88,14 +90,14 @@ public class MrPotatoV2 extends AdvancedRobot {
     }
     
     /**
-     * Incrementa diferentes tickers
+     * Función para incrementar cada uno de los ticks que estamos siguiendo, se ejecuta una vez por cada tick del juego.
      */
     protected void incTickers () {
         this.ticksFromLastMovChange++;
     }
     
     /**
-     * Normaliza el angulo entre 0 y 360º
+     * Función para normalizar el ángulo angle entre 0 y 360º
      * @param angle Angulo no normalizado
      * @return Angulo normalizado
      */
@@ -104,8 +106,9 @@ public class MrPotatoV2 extends AdvancedRobot {
     }
     
     /**
-     * Handler para diferentes posibles cambios de dirección
-     * de nuestro robot.
+     * Handler que permite cambiar la dirección de nuestro robot en función de diferentes eventos que sucedan en la partida (motivo). 
+     * Cambiaremos la dirección en caso de que nos encontremos con un muro (MURO),en caso de que casi chocamos (CASI_CHOCO),
+     * en caso de que nos dispare un enemigo (ENEMIGO_DISPARO) y para movernos haciendo los strafes(zig-zags) (PERIODICO).
      * @param motivo Motivo por el que se quiere cambiar de dirección
      */
     protected void changeDirection (String motivo) {
@@ -143,7 +146,10 @@ public class MrPotatoV2 extends AdvancedRobot {
     
     
     /**
-     * Lógica principal del movimiento de nuestro robot
+     * Función que otorga al robot la lógica principal de movimiento.
+     * MrPotatoV2 se posiciona de forma perpendicular al enemigo y se mantiene a una distancia determinada moviéndose en zig-zag reculando o avanzando
+     * manteniendo dicha distancia. Si la distancia no se puede mantener y la energía de MrPotatoV2 es superior a la energía de
+     * su contrincante, MrPotatoV2 avanzará hacia adelante intentando chocarle hasta la muerte.
      * @param event Permite obtener información del enemigo utilizada para tomar decisiones
      */
     protected void analizaYMueve(ScannedRobotEvent event) {
@@ -185,7 +191,7 @@ public class MrPotatoV2 extends AdvancedRobot {
     
     
     /**
-     * Lógica para elegir la potencia de la bala
+     * Función que decide con qué potencia vamos a disparar la próxima vez que disparemos.
      * @param event Permite obtener información del enemigo utilizada para tomar decisiones
      */
     protected void selectBulletPower(ScannedRobotEvent event) {
@@ -203,8 +209,7 @@ public class MrPotatoV2 extends AdvancedRobot {
     
     
     /**
-     * Calcula la distancia que hay entre nuestro robot y la posición que se
-     * ha predecido con this.predX y this.predY
+     * Función que devuelve la distancia euclídea entre nuestro robot y el punto que hemos predecido (predX, predY)
      * @return La distancia que hay entre nuestro robot y la posición que se
      * ha predecido con this.predX y this.predY
      */
@@ -214,8 +219,7 @@ public class MrPotatoV2 extends AdvancedRobot {
     
     
     /**
-     * Calcula a que distancia estará una bala de potencia this.bulletPower en
-     * un tiempo determinado time.
+     * Función que calcula a qué distancia estará una bala con la potencia establecida en ese momento en un tiempo determinado (time).
      * @param time Tiempo usado para el calculo
      * @return Devuelve la distancia calculada
      */
@@ -225,8 +229,9 @@ public class MrPotatoV2 extends AdvancedRobot {
     
     
     /**
-     * Ajustar los atributos de posición en donde se quiere disparar con un 
-     * modelo de predicción basado en el circular targeting.
+     * Función que permite calcular y ajustar los atributos de posición donde se quiere disparar. 
+     * El modelo de predicción está basado en el circular targeting el cual asume que el robot enemigo va a
+     * continuar moviéndose siguiendo una trayectoria determinada a una velocidad determinada.  
      * @param event Permite obtener información del enemigo utilizada para tomar decisiones
      */
     protected void calculateCircularTarget (ScannedRobotEvent event) {
@@ -251,8 +256,8 @@ public class MrPotatoV2 extends AdvancedRobot {
     
     
     /**
-     * En función de los atributos this.predX y this.predY calculamos el angulo
-     * en el que el cañon del tanque debe estar a la hora de disparar y disparamos.
+     * Función encargada de calcular el ángulo con respecto a la posición dada previamente en la función calculateCircularTarget(),
+     * de ajustarlo y de disparar.
      * @param event Permite obtener información del enemigo utilizada para tomar decisiones
      */
     protected void aimAndShoot(ScannedRobotEvent event) {
@@ -274,8 +279,15 @@ public class MrPotatoV2 extends AdvancedRobot {
     
     
     /**
-     * Evento principal de donde se toman todas las decisiones basado en 
-     * la información que recibimos del enemigo escaneado.
+     * Función que es llamada siempre que un robot enemigo es escaneado. 
+       La lógica principal de nuestro robot proviene de este handler, ya que MrPotatoV2 toma decisiones según 
+       * lo que se procese al escanear el estado de la batalla. Llamamos a los siguientes métodos en orden:
+        1. analizaYmueve
+        2. selectBulletPower
+        3. calculateCircularTarget
+        4. aimAndShoot
+       Por último refrescamos hacia donde está mirando el radar en función de la nueva posición del robot escaneado.
+
      * @param event Permite obtener información del enemigo utilizada para tomar decisiones
      */
     @Override
@@ -290,9 +302,8 @@ public class MrPotatoV2 extends AdvancedRobot {
     }
     
     /**
-     * Creamos un evento personalizado para determinar si nuestro robot está
-     * en una zona peligrosa o no en función del la distancia a los muros que le 
-     * rodean.
+     * Nueva condición creada para registrar un evento personalizado, en el que devolvemos true o false. 
+     * Según si la posición del robot está demasiado cerca del borde o no.
      */
     Condition almostHitWall = new Condition("CASI_CHOCO") {
         @Override
@@ -308,7 +319,7 @@ public class MrPotatoV2 extends AdvancedRobot {
     
     
     /**
-     * Handler donde se procesarán los eventos personalizados creados por nosotros.
+     * Función que permite procesar los eventos personalizados.
      * @param event Permite obtener información del enemigo utilizada para tomar decisiones
      */
     @Override
@@ -321,7 +332,7 @@ public class MrPotatoV2 extends AdvancedRobot {
     
     
     /**
-     * Handler que determina que hacer si nos chocamos contra un muro
+     * Función que determina qué hacer si nos chocamos con un muro.
      * @param event Permite obtener información del enemigo utilizada para tomar decisiones
      */
     @Override
